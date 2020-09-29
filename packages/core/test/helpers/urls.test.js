@@ -2,6 +2,8 @@ import urlCompiler from '@/helpers/urls';
 
 describe('helpers/urls', () => {
   it('should compile urls correctly', () => {
+    expect(urlCompiler().url).toEqual('');
+
     expect(urlCompiler('/foo').url).toEqual('/foo');
     expect(urlCompiler('/foo/bar', {}).url).toEqual('/foo/bar');
     expect(urlCompiler('/foo/:bar', { bar: 321, boo: 123 }).url).toEqual('/foo/321');

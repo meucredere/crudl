@@ -1,4 +1,4 @@
-import generator, {
+import keysGenerator, {
   pluralizeAndSnakeCase,
   snakeCase,
 } from '@/generators/keys';
@@ -36,8 +36,8 @@ describe('generators/keys', () => {
     });
   });
 
-  it('should generate keys for all default operations', () => {
-    expect(generator('foo_bar')).toEqual({
+  it('should return keys for all default operations', () => {
+    expect(keysGenerator('foo_bar')).toEqual({
       create: 'foo_bar',
       read: 'foo_bar',
       update: 'foo_bar',
@@ -46,8 +46,8 @@ describe('generators/keys', () => {
     });
   });
 
-  it('should generate keys for included operations only', () => {
-    expect(generator('foo_bar', {
+  it('should only return keys for included operations', () => {
+    expect(keysGenerator('foo_bar', {
       include: ['create', 'list'],
     })).toEqual({
       create: 'foo_bar',
@@ -56,7 +56,7 @@ describe('generators/keys', () => {
   });
 
   it('should replace default keys correctly', () => {
-    expect(generator('foo_bar', {
+    expect(keysGenerator('foo_bar', {
       include: ['create', 'list'],
       keys: {
         create: 'fooCustomBar',
@@ -68,7 +68,7 @@ describe('generators/keys', () => {
   });
 
   it('should preserve empty keys (so no wrapping request results) correctly', () => {
-    expect(generator('foo_bar', {
+    expect(keysGenerator('foo_bar', {
       keys: {
         create: false,
         update: false,

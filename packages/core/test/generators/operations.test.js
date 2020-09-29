@@ -1,4 +1,4 @@
-import generator, { OPERATIONS, filter } from '@/generators/operations';
+import operationsGenerator, { OPERATIONS, filter } from '@/generators/operations';
 
 describe('generators/operations', () => {
   describe('filter', () => {
@@ -32,73 +32,73 @@ describe('generators/operations', () => {
     expect(OPERATIONS.list.method).toEqual('get');
   });
 
-  it('should return all the operations if no include or exclude is passed', () => {
-    expect(generator()).toEqual(OPERATIONS);
+  it('should return all the operations when no "include" or "exclude" is used', () => {
+    expect(operationsGenerator()).toEqual(OPERATIONS);
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: [],
     })).toEqual(OPERATIONS);
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       exclude: [],
     })).toEqual(OPERATIONS);
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: [],
       exclude: [],
     })).toEqual(OPERATIONS);
   });
 
   it('should return operations correctly when using "include" only', () => {
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create'],
     })).toEqual({ create: OPERATIONS.create });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create', 'asd'],
     })).toEqual({ create: OPERATIONS.create });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create', 'update'],
     })).toEqual({ create: OPERATIONS.create, update: OPERATIONS.update });
   });
 
   it('should return operations correctly when using "exclude" only', () => {
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       exclude: ['create', 'update'],
     })).toEqual({ read: OPERATIONS.read, delete: OPERATIONS.delete, list: OPERATIONS.list });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       exclude: ['create', 'asd', 'delete'],
     })).toEqual({ read: OPERATIONS.read, update: OPERATIONS.update, list: OPERATIONS.list });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       exclude: ['create', 'update'],
     })).toEqual({ read: OPERATIONS.read, delete: OPERATIONS.delete, list: OPERATIONS.list });
   });
 
   it('should return operations correctly when using both "include" and "exclude"', () => {
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create', 'read'],
       exclude: ['create'],
     })).toEqual({ read: OPERATIONS.read });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create', 'update', 'asd'],
       exclude: ['update', 'asd'],
     })).toEqual({ create: OPERATIONS.create });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create', 'update', 'asd'],
       exclude: ['update', 'asd'],
     })).toEqual({ create: OPERATIONS.create });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create', 'update', 'delete', 'asd'],
       exclude: ['update', 'list', 'qwe'],
     })).toEqual({ create: OPERATIONS.create, delete: OPERATIONS.delete });
 
-    expect(generator(undefined, {
+    expect(operationsGenerator(undefined, {
       include: ['create', 'update', 'delete', 'asd'],
       exclude: ['update', 'delete', 'list', 'qwe'],
     })).toEqual({ create: OPERATIONS.create });

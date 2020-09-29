@@ -28,8 +28,8 @@ export function modifierExecutorGenerator(key, operation, types, config = {}) {
     [types.clean](data) {
       return executor.clean(key, operation, spreadModifyingData(data, config));
     },
-    [types.start](data, response) {
-      return executor.start(key, operation, spreadModifyingData(data, config), response);
+    [types.start](data, payload) {
+      return executor.start(key, operation, spreadModifyingData(data, config), payload);
     },
     [types.success](data, response) {
       return executor.success(key, operation, spreadModifyingData(data, config), response);

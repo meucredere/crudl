@@ -1,4 +1,4 @@
-import generator, { constantGenerator } from '@/generators/constants';
+import constantsGenerator, { constantGenerator } from '@/generators/constants';
 
 describe('generators/constants', () => {
   describe('constantsGenerator', () => {
@@ -6,7 +6,7 @@ describe('generators/constants', () => {
   });
 
   it('should return all the default constants correctly', () => {
-    expect(generator('fooBar')).toEqual({
+    expect(constantsGenerator('fooBar')).toEqual({
       create: {
         clean: 'CRUDL/FOOBAR/CREATE/CLEAN',
         start: 'CRUDL/FOOBAR/CREATE/START',
@@ -40,8 +40,8 @@ describe('generators/constants', () => {
     });
   });
 
-  it('should return only included constants correctly', () => {
-    expect(generator('hello', {
+  it('should only return constants for included operations', () => {
+    expect(constantsGenerator('hello', {
       include: ['read'],
     })).toEqual({
       read: {

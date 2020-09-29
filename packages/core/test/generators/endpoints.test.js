@@ -1,8 +1,8 @@
-import generator from '@/generators/endpoints';
+import endpointsGenerator from '@/generators/endpoints';
 
 describe('generators/endpoints', () => {
   it('should return all the default endpoints', () => {
-    expect(generator('someItem')).toEqual({
+    expect(endpointsGenerator('someItem')).toEqual({
       create: '/some_items',
       read: '/some_items/:id',
       update: '/some_items/:id',
@@ -12,7 +12,7 @@ describe('generators/endpoints', () => {
   });
 
   it('should overwrite default endpoints correctly', () => {
-    expect(generator('someItem', {
+    expect(endpointsGenerator('someItem', {
       endpoints: {
         list: '/hello-world',
         delete: '/deactivateNow',
@@ -26,8 +26,8 @@ describe('generators/endpoints', () => {
     });
   });
 
-  it('should return only included endpoints correctly', () => {
-    expect(generator('someItem', {
+  it('should only return endpoints for included operations', () => {
+    expect(endpointsGenerator('someItem', {
       include: ['read', 'list'],
     })).toEqual({
       read: '/some_items/:id',

@@ -10,7 +10,7 @@ import { modifierCaller } from '@/executors/modifiers';
 import urlCompiler from '@/helpers/urls';
 
 export function requestGenerator(key, operation, method, endpoint, constants, config = {}) {
-  const caller = config.modifierCaller || modifierCaller;
+  const modifierExecutor = config.modifierCaller || modifierCaller;
   const client = config.client || defaultClient;
 
   return function generatedRequest(custom, payload) {
@@ -23,24 +23,26 @@ export function requestGenerator(key, operation, method, endpoint, constants, co
       striped,
     } = urlCompiler(endpoint, payload);
 
+    delete striped.crudl;
+
     const request = {
       method,
       [method === 'get' ? 'params' : 'data']: striped,
     };
 
-    // calls the start modifier to set loading state as true, etc
-    caller(custom, constants.start);
+    // calls the start modifier executor to set loading state as true, etc
+    modifierExecutor(custom, constants.start, payload);
 
     return new Promise((resolve, reject) => {
       client(url, request)
         .then((response) => {
-          // calls the success modifier with the http client's response object
-          caller(custom, constants.success, response);
+          // calls the success modifier executor with the http client's response object
+          modifierExecutor(custom, constants.success, response);
           resolve(response);
         })
         .catch((error) => {
-          // calls the failure modifier with the http client's error object
-          caller(custom, constants.failure, error);
+          // calls the failure modifier executor with the http client's error object
+          modifierExecutor(custom, constants.failure, error);
           reject(error);
         });
     });

@@ -1,8 +1,8 @@
-import generator from '@/generators/methods';
+import methodsGenerator from '@/generators/methods';
 
 describe('generators/methods', () => {
   it('should return all the default methods', () => {
-    expect(generator()).toEqual({
+    expect(methodsGenerator()).toEqual({
       create: 'post',
       read: 'get',
       update: 'put',
@@ -12,7 +12,7 @@ describe('generators/methods', () => {
   });
 
   it('should overwrite default methods correctly', () => {
-    expect(generator(undefined, {
+    expect(methodsGenerator(undefined, {
       methods: {
         update: 'patch',
         list: 'post',
@@ -27,8 +27,8 @@ describe('generators/methods', () => {
     });
   });
 
-  it('should return only included methods correctly', () => {
-    expect(generator('someItem', {
+  it('should only return methods for included operations', () => {
+    expect(methodsGenerator('someItem', {
       include: ['read'],
     })).toEqual({
       read: 'get',

@@ -10,17 +10,13 @@ export function shouldUpdateItemOrItems(operation) {
 
 // internal crudl control to check if it should preseve previous data on new requests, for example,
 // appending new items to the existing list or refreshing identified items without flashing the page
-export function shouldOverwriteData(response) {
-  try {
-    return !response.config.crudl.preserveData;
-  } catch (err) {
-    return true;
-  }
+export function shouldOverwriteData(data, operation) {
+  return data[operation].config.preserve;
 }
 
-// modifies data like
+// transforms data like
 // [{ id: 1, name: a }, { id: 12, name: b }]
-// to
+// into
 // { 1: { id: 1, name: a }, 12: { id: 12, name: b } }
 export function prepareModifyingDataArray(items = [], property = 'id') {
   function reducer(obj, item) {
@@ -34,7 +30,7 @@ export function prepareModifyingDataArray(items = [], property = 'id') {
 }
 
 export function prepareModifyingData(key, operation, data, response) {
-  // check if the current operation is configured to be wrapped by a key and unwraps it if so
+  // checks if the current operation is set to be wrapped by a key and unwraps it if so
   const result = key ? response.data[key] : response.data;
 
   // returns the item if it is a single item operation
@@ -43,7 +39,7 @@ export function prepareModifyingData(key, operation, data, response) {
   }
 
   // returns the new keyed object of items for multiple items operations that do not preserve data
-  if (shouldOverwriteData(response)) {
+  if (shouldOverwriteData(data, operation)) {
     return prepareModifyingDataArray(result);
   }
 
@@ -52,7 +48,7 @@ export function prepareModifyingData(key, operation, data, response) {
   return {
     ...data[operation][shouldUpdateItemOrItems(operation)],
     // transforms the data array into a keyed object using the
-    // custom primary key config (default primary identifier fallback is "id")
+    // custom primary key config (default primary identifier's fallback is "id")
     ...prepareModifyingDataArray(result),
   };
 }
@@ -61,11 +57,14 @@ export function prepareModifyingData(key, operation, data, response) {
 // the first param, "custom", is the default framework action param, like
 // dispatch() for Redux, or
 // { commit(), state(), getters(), dispatch() } for Vuex
-export function modifierCaller(custom, constant, reponseOrError) {
+export function modifierCaller(custom, constant, responseOrErrorOrPayload) {
   const args = [constant];
 
-  if (reponseOrError !== undefined) {
-    args.push(reponseOrError);
+  // 'payload' when constant is start
+  // 'response' when constant is success
+  // 'error' when constant is failure
+  if (responseOrErrorOrPayload !== undefined) {
+    args.push(responseOrErrorOrPayload);
   }
 
   return custom(...args);
@@ -76,14 +75,17 @@ export function cleanModifier(key, operation, data) {
   data[operation][shouldUpdateItemOrItems(operation)] = {};
   data[operation].loading = false;
   data[operation].failure = null;
+  data[operation].config = {};
 
   return data;
 }
 
 // starts the request: cleans errors and starts loading
-export function startModifier(key, operation, data, response) {
+export function startModifier(key, operation, data, payload = {}) {
+  data[operation].config = { ...payload.crudl } || {};
+
   // overwrite previous data on request start?
-  if (shouldOverwriteData(response)) {
+  if (shouldOverwriteData(data, operation)) {
     data[operation][shouldUpdateItemOrItems(operation)] = {};
   }
 
@@ -104,6 +106,7 @@ export function successModifier(key, operation, data, response) {
 
   data[operation].failure = null;
   data[operation].loading = false;
+  data[operation].config = {};
 
   return data;
 }
@@ -111,7 +114,7 @@ export function successModifier(key, operation, data, response) {
 // successfull request: sets errors and stops the loading
 export function failureModifier(key, operation, data, error) {
   // overwrite previous data on request failure?
-  if (shouldOverwriteData(error.response)) {
+  if (shouldOverwriteData(data, operation)) {
     data[operation][shouldUpdateItemOrItems(operation)] = {};
   }
 
@@ -119,6 +122,7 @@ export function failureModifier(key, operation, data, error) {
   // otherwise, returns the error object itself
   data[operation].failure = error.response ? error.response.data : error;
   data[operation].loading = false;
+  data[operation].config = {};
 
   return data;
 }

@@ -1,6 +1,6 @@
 import constantsGenerator from '@/generators/constants';
 
-import generator, {
+import modifiersGenerator, {
   modifierExecutorGenerator,
   spreadModifyingData,
 } from '@/generators/modifiers';
@@ -10,7 +10,7 @@ import * as modifierExecutors from '@/executors/modifiers';
 describe('generators/modifiers', () => {
   it('should return all the default modifiers correctly', () => {
     const constants = constantsGenerator('bar');
-    const modifiers = generator('bar');
+    const modifiers = modifiersGenerator('bar');
 
     expect(Object.keys(modifiers)).toEqual(['create', 'read', 'update', 'delete', 'list']);
     expect(Object.keys(modifiers.create)).toEqual(Object.values(constants.create));
@@ -20,9 +20,9 @@ describe('generators/modifiers', () => {
     expect(Object.keys(modifiers.list)).toEqual(Object.values(constants.list));
   });
 
-  it('should return only included modifiers correctly', () => {
+  it('should only return modifiers for included operations', () => {
     const constants = constantsGenerator('bar');
-    const modifiers = generator('bar', { include: ['create', 'update'] });
+    const modifiers = modifiersGenerator('bar', { include: ['create', 'update'] });
 
     expect(Object.keys(modifiers)).toEqual(['create', 'update']);
     expect(Object.keys(modifiers.create)).toEqual(Object.values(constants.create));
