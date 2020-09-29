@@ -11,7 +11,11 @@ export function shouldUpdateItemOrItems(operation) {
 // internal crudl control to check if it should preseve previous data on new requests, for example,
 // appending new items to the existing list or refreshing identified items without flashing the page
 export function shouldOverwriteData(data, operation) {
-  return data[operation].config.preserve;
+  try {
+    return !data[operation].config.preserve;
+  } catch (err) {
+    return true;
+  }
 }
 
 // transforms data like
@@ -82,7 +86,7 @@ export function cleanModifier(key, operation, data) {
 
 // starts the request: cleans errors and starts loading
 export function startModifier(key, operation, data, payload = {}) {
-  data[operation].config = { ...payload.crudl } || {};
+  data[operation].config = { ...payload.crudl };
 
   // overwrite previous data on request start?
   if (shouldOverwriteData(data, operation)) {

@@ -53,6 +53,38 @@ describe('crudl/index', () => {
         read: 'get',
         update: 'put',
       },
+      data: {
+        create: {
+          loading: false,
+          failure: null,
+          config: {},
+          item: {},
+        },
+        read: {
+          loading: false,
+          failure: null,
+          config: {},
+          item: {},
+        },
+        update: {
+          loading: false,
+          failure: null,
+          config: {},
+          item: {},
+        },
+        delete: {
+          loading: false,
+          failure: null,
+          config: {},
+          item: {},
+        },
+        list: {
+          loading: false,
+          failure: null,
+          config: {},
+          items: {},
+        },
+      },
       constants: {
         create: {
           clean: 'CRUDL/POST/CREATE/CLEAN',

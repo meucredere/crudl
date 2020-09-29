@@ -5,6 +5,7 @@ import methodsGenerator from '@/generators/methods';
 import constantsGenerator from '@/generators/constants';
 import requestsGenerator from '@/generators/requests';
 import modifiersGenerator from '@/generators/modifiers';
+import dataGenerator from '@/generators/data';
 
 export default function generator(key, config = {}) {
   const crudl = {};
@@ -16,6 +17,7 @@ export default function generator(key, config = {}) {
   crudl.constants = constantsGenerator(key, config, crudl);
   crudl.requests = requestsGenerator(key, config, crudl);
   crudl.modifiers = modifiersGenerator(key, config, crudl);
+  crudl.data = dataGenerator(key, config, crudl);
 
   return crudl;
 }
