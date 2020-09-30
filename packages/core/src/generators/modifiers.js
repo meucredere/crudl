@@ -47,12 +47,15 @@ export default function modifiersGenerator(key, config = {}) {
 
   function reducer(obj, operation) {
     // eslint-disable-next-line no-param-reassign
-    obj[operation] = modifierExecutorGenerator(
-      keys[operation],
-      operation,
-      constants[operation],
-      config,
-    );
+    obj = {
+      ...obj,
+      ...modifierExecutorGenerator(
+        keys[operation],
+        operation,
+        constants[operation],
+        config,
+      ),
+    };
 
     return obj;
   }

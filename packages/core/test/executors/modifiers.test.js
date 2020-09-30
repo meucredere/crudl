@@ -5,8 +5,6 @@ import {
   shouldOverwriteData,
   shouldUpdateItemOrItems,
 
-  modifierCaller,
-
   cleanModifier,
   startModifier,
   successModifier,
@@ -132,15 +130,6 @@ describe('executors/modifiers', () => {
       expect(shouldUpdateItemOrItems('update')).toEqual('item');
       expect(shouldUpdateItemOrItems('delete')).toEqual('item');
       expect(shouldUpdateItemOrItems('list')).toEqual('items');
-    });
-  });
-
-  describe('modifierCaller', () => {
-    it('should call the default modifier correctly', () => {
-      const spy = jest.fn();
-
-      modifierCaller(spy, 'whatever', { hello: 'world' });
-      expect(spy).toHaveBeenLastCalledWith('whatever', { hello: 'world' });
     });
   });
 

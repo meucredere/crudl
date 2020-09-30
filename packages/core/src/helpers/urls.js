@@ -1,5 +1,5 @@
 export default function urlCompiler(url = '', params = {}) {
-  const striped = { ...params };
+  const data = { ...params };
 
   function replace(param) {
     const match = param.match(/^:(.*?)(?=\?|#|$)/);
@@ -7,7 +7,7 @@ export default function urlCompiler(url = '', params = {}) {
     if (match) {
       const key = match[0].replace(/^:/, '');
 
-      delete striped[key];
+      delete data[key];
       return params[key] || param;
     }
 
@@ -16,6 +16,6 @@ export default function urlCompiler(url = '', params = {}) {
 
   return {
     url: url.split('/').map(replace).join('/'),
-    striped,
+    data,
   };
 }

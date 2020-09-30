@@ -57,23 +57,6 @@ export function prepareModifyingData(key, operation, data, response) {
   };
 }
 
-// (this modifier caller is living here just for easier third party frameworks extendability)
-// the first param, "custom", is the default framework action param, like
-// dispatch() for Redux, or
-// { commit(), state(), getters(), dispatch() } for Vuex
-export function modifierCaller(custom, constant, responseOrErrorOrPayload) {
-  const args = [constant];
-
-  // 'payload' when constant is start
-  // 'response' when constant is success
-  // 'error' when constant is failure
-  if (responseOrErrorOrPayload !== undefined) {
-    args.push(responseOrErrorOrPayload);
-  }
-
-  return custom(...args);
-}
-
 // cleans data: resets the operation data to its initial config
 export function cleanModifier(key, operation, data) {
   data[operation][shouldUpdateItemOrItems(operation)] = {};

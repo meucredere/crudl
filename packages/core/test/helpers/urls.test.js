@@ -12,9 +12,9 @@ describe('helpers/urls', () => {
   });
 
   it('should remove name parameters correctly', () => {
-    expect(urlCompiler('/foo/:bar', { bar: 321 }).striped).toEqual({});
-    expect(urlCompiler('/foo/:bar', { bar: 321, boo: 123 }).striped).toEqual({ boo: 123 });
-    expect(urlCompiler('/foo/:bar/far/:boo', { foo: 12, bar: 34, far: 56, boo: 78 }).striped).toEqual({ foo: 12, far: 56 });
+    expect(urlCompiler('/foo/:bar', { bar: 321 }).data).toEqual({});
+    expect(urlCompiler('/foo/:bar', { bar: 321, boo: 123 }).data).toEqual({ boo: 123 });
+    expect(urlCompiler('/foo/:bar/far/:boo', { foo: 12, bar: 34, far: 56, boo: 78 }).data).toEqual({ foo: 12, far: 56 });
   });
 
   it('should ignore not given or invalid parameters (kinda for easier debugging purposes on v0.0.1)', () => {

@@ -4,6 +4,7 @@ import * as client from '@/clients/default';
 
 import requestsGenerator, {
   requestGenerator,
+  requestCallback,
 } from '@/generators/requests';
 
 describe('generators/requests', () => {
@@ -94,6 +95,15 @@ describe('generators/requests', () => {
       expect(spy).toHaveBeenLastCalledWith('/posts/1/comments/2', { params: { foo: 'bar' }, method: 'get' });
 
       spy.mockRestore();
+    });
+  });
+
+  describe('requestCallback', () => {
+    it('should call the executor correctly', () => {
+      const spy = jest.fn();
+
+      requestCallback(spy, 'whatever', { hello: 'world' });
+      expect(spy).toHaveBeenLastCalledWith('whatever', { hello: 'world' });
     });
   });
 

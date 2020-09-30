@@ -12,21 +12,22 @@ describe('generators/modifiers', () => {
     const constants = constantsGenerator('bar');
     const modifiers = modifiersGenerator('bar');
 
-    expect(Object.keys(modifiers)).toEqual(['create', 'read', 'update', 'delete', 'list']);
-    expect(Object.keys(modifiers.create)).toEqual(Object.values(constants.create));
-    expect(Object.keys(modifiers.read)).toEqual(Object.values(constants.read));
-    expect(Object.keys(modifiers.update)).toEqual(Object.values(constants.update));
-    expect(Object.keys(modifiers.delete)).toEqual(Object.values(constants.delete));
-    expect(Object.keys(modifiers.list)).toEqual(Object.values(constants.list));
+    expect(Object.keys(modifiers)).toEqual(
+      Object.values(constants.create)
+        .concat(Object.values(constants.read))
+        .concat(Object.values(constants.update))
+        .concat(Object.values(constants.delete))
+        .concat(Object.values(constants.list)),
+    );
   });
 
   it('should only return modifiers for included operations', () => {
     const constants = constantsGenerator('bar');
     const modifiers = modifiersGenerator('bar', { include: ['create', 'update'] });
 
-    expect(Object.keys(modifiers)).toEqual(['create', 'update']);
-    expect(Object.keys(modifiers.create)).toEqual(Object.values(constants.create));
-    expect(Object.keys(modifiers.update)).toEqual(Object.values(constants.update));
+    expect(Object.keys(modifiers)).toEqual(
+      Object.values(constants.create).concat(Object.values(constants.update)),
+    );
   });
 
   describe('spreadModifyingData', () => {

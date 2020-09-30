@@ -5,47 +5,68 @@ import methodsGenerator from '@/generators/methods';
 import constantsGenerator from '@/generators/constants';
 
 import { defaultClient } from '@/clients/default';
-import { modifierCaller } from '@/executors/modifiers';
 
 import urlCompiler from '@/helpers/urls';
 
+// the first param, "executor", is designed to be the default framework action param, like
+// dispatch() for Redux (thunk), or
+// { commit(), (...) } for Vuex
+export function requestCallback(executor, constant, responseOrErrorOrPayload) {
+  const args = [constant];
+
+  // 'payload' when 'constant' is related to 'start'
+  // 'response' when 'constant' is related to 'success'
+  // 'error' when 'constant' is related to 'failure'
+  if (responseOrErrorOrPayload !== undefined) {
+    args.push(responseOrErrorOrPayload);
+  }
+
+  return executor(...args);
+}
+
 export function requestGenerator(key, operation, method, endpoint, constants, config = {}) {
-  const modifierExecutor = config.modifierCaller || modifierCaller;
   const client = config.client || defaultClient;
 
-  return function generatedRequest(custom, payload) {
+  return function generatedRequest(executor, payload) {
     const {
       // compiled url with named parameters
       // i.e. /foo/:id -> /foo/1
       url,
-      // remove said named parameters from the payload
+      // remove said named parameters from the sending data
       // so the result url isn't /foo/1?id=1 but /foo/1 instead
-      striped,
+      data,
     } = urlCompiler(endpoint, payload);
 
-    delete striped.crudl;
+    // remove crudl's internal request config from the sending request data
+    delete data.crudl;
 
     const request = {
       method,
-      [method === 'get' ? 'params' : 'data']: striped,
+      [method === 'get' ? 'params' : 'data']: data,
     };
 
-    // calls the start modifier executor to set loading state as true, etc
-    modifierExecutor(custom, constants.start, payload);
+    function start(resolve, reject) {
+      // calls the start modifier executor to set loading state as true, etc
+      requestCallback(executor, constants.start, payload);
 
-    return new Promise((resolve, reject) => {
+      function success(response) {
+        // calls the success modifier executor with the http client's response object
+        requestCallback(executor, constants.success, response);
+        resolve(response);
+      }
+
+      function failure(error) {
+        // calls the failure modifier executor with the http client's error object
+        requestCallback(executor, constants.failure, error);
+        reject(error);
+      }
+
       client(url, request)
-        .then((response) => {
-          // calls the success modifier executor with the http client's response object
-          modifierExecutor(custom, constants.success, response);
-          resolve(response);
-        })
-        .catch((error) => {
-          // calls the failure modifier executor with the http client's error object
-          modifierExecutor(custom, constants.failure, error);
-          reject(error);
-        });
-    });
+        .then(success)
+        .catch(failure);
+    }
+
+    return new Promise(start);
   };
 }
 
