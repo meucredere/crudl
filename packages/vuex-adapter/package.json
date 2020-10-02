@@ -21,9 +21,8 @@
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@crudl/core": "0.0.1",
+    "@crudl/core": "^0.0.1",
     "vue": "^2.6.12",
     "vuex": "^3.5.1"
   },

@@ -21,9 +21,8 @@
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@crudl/core": "0.0.1",
+    "@crudl/core": "^0.0.1",
     "@reduxjs/toolkit": "^1.4.0",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0"
