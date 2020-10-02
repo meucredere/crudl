@@ -36,5 +36,8 @@
     "vuex",
     "react",
     "redux"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
