@@ -1,7 +1,7 @@
 {
-  "name": "@crudl/core",
+  "name": "@crudl/redux-adapter",
   "version": "0.0.1",
-  "description": "Abstracts and handles common JSON RESTful APIs requests and responses",
+  "description": "CRUDL's Redux adapter",
   "homepage": "https://github.com/meucredere/crudl",
   "author": "Kaio Cristian <credev@meucredere.com.br>",
   "license": "MIT",
@@ -21,20 +21,15 @@
     "test": "jest",
     "test:watch": "jest --watchAll"
   },
-  "dependencies": {
-    "irregular-plurals": "^3.2.0",
-    "snake-case": "^3.0.3"
+  "dependencies": {},
+  "devDependencies": {
+    "@crudl/core": "0.0.1",
+    "@reduxjs/toolkit": "^1.4.0",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0"
   },
   "keywords": [
     "crudl",
-    "crud",
-    "api",
-    "json",
-    "rest",
-    "restful",
-    "vue",
-    "vuex",
-    "react",
-    "redux"
+    "vuex"
   ]
 }

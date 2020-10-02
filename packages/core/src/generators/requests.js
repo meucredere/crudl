@@ -1,5 +1,4 @@
 import operationsGenerator from '@/generators/operations';
-import keysGenerator from '@/generators/keys';
 import endpointsGenerator from '@/generators/endpoints';
 import methodsGenerator from '@/generators/methods';
 import constantsGenerator from '@/generators/constants';
@@ -8,25 +7,12 @@ import { defaultClient } from '@/clients/default';
 
 import urlCompiler from '@/helpers/urls';
 
-// the first param, "executor", is designed to be the default framework action param, like
-// dispatch() for Redux (thunk), or
-// { commit(), (...) } for Vuex
-export function requestCallback(executor, constant, responseOrErrorOrPayload) {
-  const args = [constant];
-
-  // 'payload' when 'constant' is related to 'start'
-  // 'response' when 'constant' is related to 'success'
-  // 'error' when 'constant' is related to 'failure'
-  if (responseOrErrorOrPayload !== undefined) {
-    args.push(responseOrErrorOrPayload);
-  }
-
-  return executor(...args);
-}
-
 export function requestGenerator(key, operation, method, endpoint, constants, config = {}) {
   const client = config.client || defaultClient;
 
+  // the first param, "executor", is designed to be the default framework action param, like
+  // dispatch() for Redux (thunk), or
+  // { commit(), (...) } for Vuex
   return function generatedRequest(executor, payload) {
     const {
       // compiled url with named parameters
@@ -47,31 +33,31 @@ export function requestGenerator(key, operation, method, endpoint, constants, co
 
     function start(resolve, reject) {
       // calls the start modifier executor to set loading state as true, etc
-      requestCallback(executor, constants.start, payload);
+      executor(constants.start, payload);
 
       function success(response) {
         // calls the success modifier executor with the http client's response object
-        requestCallback(executor, constants.success, response);
+        executor(constants.success, response);
         resolve(response);
       }
 
       function failure(error) {
         // calls the failure modifier executor with the http client's error object
-        requestCallback(executor, constants.failure, error);
+        executor(constants.failure, error);
         reject(error);
       }
 
-      client(url, request)
+      return client(url, request)
         .then(success)
         .catch(failure);
     }
 
-    return new Promise(start);
+    function cancel() {}
+    return new Promise(start).catch(cancel);
   };
 }
 
 export default function requestsGenerator(key, config = {}) {
-  const keys = keysGenerator(key, config);
   const operations = operationsGenerator(key, config);
   const endpoints = endpointsGenerator(key, config);
   const methods = methodsGenerator(key, config);
@@ -80,7 +66,7 @@ export default function requestsGenerator(key, config = {}) {
   function reducer(obj, operation) {
     // eslint-disable-next-line no-param-reassign
     obj[operation] = requestGenerator(
-      keys[operation],
+      key,
       operation,
       methods[operation],
       endpoints[operation],

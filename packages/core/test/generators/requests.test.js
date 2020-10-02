@@ -98,15 +98,6 @@ describe('generators/requests', () => {
     });
   });
 
-  describe('requestCallback', () => {
-    it('should call the executor correctly', () => {
-      const spy = jest.fn();
-
-      requestCallback(spy, 'whatever', { hello: 'world' });
-      expect(spy).toHaveBeenLastCalledWith('whatever', { hello: 'world' });
-    });
-  });
-
   it('should return all the default requests correctly', () => {
     const spy = jest.spyOn(client, 'defaultClient');
     const constants = constantsGenerator('post');

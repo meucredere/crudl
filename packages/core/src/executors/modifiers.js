@@ -34,11 +34,15 @@ export function prepareModifyingDataArray(items = [], property = 'id') {
 }
 
 export function prepareModifyingData(key, operation, data, response) {
+  const {
+    multiple,
+  } = OPERATIONS[operation];
+
   // checks if the current operation is set to be wrapped by a key and unwraps it if so
-  const result = key ? response.data[key] : response.data;
+  const result = (key ? response.data[key] : response.data) || (multiple ? [] : {});
 
   // returns the item if it is a single item operation
-  if (!OPERATIONS[operation].multiple) {
+  if (!multiple) {
     return result;
   }
 
@@ -83,7 +87,7 @@ export function startModifier(key, operation, data, payload = {}) {
 }
 
 // successfull request: sets the new data, cleans errors and stops the loading
-export function successModifier(key, operation, data, response) {
+export function successModifier(key, operation, data, response = {}) {
   data[operation][shouldUpdateItemOrItems(operation)] = prepareModifyingData(
     key,
     operation,
@@ -98,8 +102,8 @@ export function successModifier(key, operation, data, response) {
   return data;
 }
 
-// successfull request: sets errors and stops the loading
-export function failureModifier(key, operation, data, error) {
+// failed request: sets errors and stops the loading
+export function failureModifier(key, operation, data, error = {}) {
   // overwrite previous data on request failure?
   if (shouldOverwriteData(data, operation)) {
     data[operation][shouldUpdateItemOrItems(operation)] = {};

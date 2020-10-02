@@ -202,9 +202,16 @@ describe('executors/modifiers', () => {
       data = { read: { loading: true, failure: 'foo', item: { id: 1 } } };
       successModifier(undefined, 'read', data, { data: { id: 2 } });
       expect(data).toEqual(singleData);
+
+      const emptyData = { list: { loading: false, failure: null, items: {}, config: {} } };
+      data = { list: { loading: true, failure: 'foo', items: { id: 1 } } };
+      expect(successModifier(undefined, 'list', data)).toEqual({ list: { loading: false, failure: null, items: {}, config: {} } });
+      data = { list: { loading: true, failure: 'foo', items: { id: 1 } } };
+      successModifier(undefined, 'list', data);
+      expect(data).toEqual(emptyData);
     });
 
-    it('should modify the original object and preserve exiting data when crudls preserve config is true and reset crudls config after', () => {
+    it('should modify the original object and preserve exiting data when crudls preserve config is true and reset crudls config after (execept on false successes, aka empty response)', () => {
       let data;
 
       data = { list: { loading: true, failure: 'foo', items: { 1: { id: 1 } }, config: { preserve: true } } };
@@ -214,6 +221,11 @@ describe('executors/modifiers', () => {
       data = { read: { loading: true, failure: 'foo', item: { id: 1 }, config: { preserve: true } } };
       successModifier(undefined, 'read', data, { data: { id: 2 } });
       expect(data).toEqual({ read: { loading: false, failure: null, item: { id: 2 }, config: {} } });
+
+      // false successes
+      data = { read: { loading: true, failure: 'foo', item: { id: 1 }, config: { preserve: true } } };
+      successModifier(undefined, 'read', data);
+      expect(data).toEqual({ read: { loading: false, failure: null, item: {}, config: {} } });
     });
   });
 
@@ -234,6 +246,13 @@ describe('executors/modifiers', () => {
       data = { read: { loading: true, failure: null, item: { id: 1 } } };
       failureModifier(undefined, 'read', data, { response: { data: 'foo bar' } });
       expect(data).toEqual(singleData);
+
+      const emptyData = { read: { loading: false, failure: {}, item: {}, config: {} } };
+      data = { read: { loading: true, failure: null, item: { id: 1 } } };
+      expect(failureModifier(undefined, 'read', data)).toEqual(emptyData);
+      data = { read: { loading: true, failure: null, item: { id: 1 } } };
+      failureModifier(undefined, 'read', data);
+      expect(data).toEqual(emptyData);
     });
 
     it('should modify the original object and preserve exiting data when crudls preserve config is true', () => {
@@ -246,6 +265,10 @@ describe('executors/modifiers', () => {
       data = { read: { loading: false, failure: 'foo bar', item: { id: 1 }, config: { preserve: true } } };
       failureModifier(undefined, 'read', data, { response: { data: 'foo bar' } });
       expect(data).toEqual({ read: { loading: false, failure: 'foo bar', item: { id: 1 }, config: {} } });
+
+      data = { read: { loading: false, failure: 'foo bar', item: { id: 1 }, config: { preserve: true } } };
+      failureModifier(undefined, 'read', data);
+      expect(data).toEqual({ read: { loading: false, failure: {}, item: { id: 1 }, config: {} } });
     });
 
     it('should set the failure data correctly when there\'s no response', () => {

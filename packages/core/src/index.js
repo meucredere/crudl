@@ -9,6 +9,8 @@ import dataGenerator from '@/generators/data';
 
 export default function crudl(key, config = {}) {
   return {
+    key,
+    config,
     operations: operationsGenerator(key, config),
     keys: keysGenerator(key, config),
     endpoints: endpointsGenerator(key, config),

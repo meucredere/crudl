@@ -5,6 +5,8 @@ describe('crudl/index', () => {
     const posts = crudl('post');
 
     expect(posts).toEqual({
+      key: 'post',
+      config: {},
       keys: {
         create: 'post',
         delete: 'post',
