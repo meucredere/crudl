@@ -1,8 +1,8 @@
 // maps crudl requests to vuex actions
-function actions(requests) {
+function actions(requests, suffix = '') {
   function reduce(obj, request) {
     // eslint-disable-next-line no-param-reassign
-    obj[request] = function vuexAction({ commit }, payload) {
+    obj[`${request}${suffix}`] = function vuexAction({ commit }, payload) {
       return requests[request](commit, payload);
     };
 
@@ -31,13 +31,16 @@ function adapter(crudl) {
   crudl.config.spread = false;
 
   function state() {
-    return crudl.data;
+    return crudl.schema;
   }
 
   return {
     namespaced: true,
     state,
-    actions: actions(crudl.requests),
+    actions: {
+      ...actions(crudl.cleaners, '/clean'),
+      ...actions(crudl.requests),
+    },
     mutations: mutations(crudl.modifiers),
   };
 }

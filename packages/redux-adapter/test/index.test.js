@@ -1,18 +1,17 @@
 import { createSlice, configureStore } from '@reduxjs/toolkit';
-import thunk from 'redux-thunk';
 
-import crudlReduxAdapter from '@/index';
-import crudl from '@crudl/core';
+import CRUDL from '@crudl/core';
+import CRUDLReduxAdapter from '@/index';
 
-describe('@crudl/vuex-adapter', () => {
-  it('should map crudl -> vuex properties correctly', () => {
-    const crudlPost = crudl('post');
-    const post = crudlReduxAdapter(crudlPost);
+describe('@crudl/redux-adapter', () => {
+  it('should map crudl -> redux properties correctly', () => {
+    const crudlPost = new CRUDL('post');
+    const post = CRUDLReduxAdapter(crudlPost);
 
     expect(post).toEqual({
       slice: {
         name: 'post',
-        initialState: crudlPost.data,
+        initialState: crudlPost.schema,
         reducers: {
           [crudlPost.constants.create.clean]: expect.any(Function),
           [crudlPost.constants.create.failure]: expect.any(Function),
@@ -38,52 +37,79 @@ describe('@crudl/vuex-adapter', () => {
       },
       actions: {
         create: expect.any(Function),
+        'create/clean': expect.any(Function),
         delete: expect.any(Function),
+        'delete/clean': expect.any(Function),
         list: expect.any(Function),
+        'list/clean': expect.any(Function),
         read: expect.any(Function),
+        'read/clean': expect.any(Function),
         update: expect.any(Function),
+        'update/clean': expect.any(Function),
       },
     });
   });
 
   it('should map crudl requests and modifiers callbacks to redux actions and reducers correctly', async () => {
-    const crudlPost = crudl('post', {
+    const crudlPost = new CRUDL('post', {
       client: () => Promise.resolve({ data: { posts: [{ id: 1 }, { id: 123 }] } }),
     });
 
-    const post = crudlReduxAdapter(crudlPost);
+    const post = CRUDLReduxAdapter(crudlPost);
 
     const postAction = jest.spyOn(post.actions, 'list');
 
-    // const postStart = jest.spyOn(post.slice.reducers, crudlPost.constants.list.start);
-    // const postSuccess = jest.spyOn(post.slice.reducers, crudlPost.constants.list.success);
-    // const postError = jest.spyOn(post.slice.reducers, crudlPost.constants.list.failure);
-
     const postSlice = createSlice(post.slice);
 
-    const store = configureStore({
+    const postStore = configureStore({
       reducer: {
         post: postSlice.reducer,
       },
-      middleware: [thunk],
     });
 
-    await store.dispatch(post.actions.list({ page: 10 }));
+    await postStore.dispatch(post.actions.list({ page: 10 }));
 
     expect(postAction).toHaveBeenCalledTimes(1);
     expect(postAction).toHaveBeenCalledWith({ page: 10 });
 
-    // expect(postStart).toHaveBeenCalledTimes(1);
-    // expect(postStart).toHaveBeenCalledWith({ page: 10 });
-
-    // expect(postSuccess).toHaveBeenCalledTimes(1);
-    // expect(postSuccess).toHaveBeenCalledWith({ data: { posts: [{ id: 1 }, { id: 123 }] } });
-
-    // expect(postError).toHaveBeenCalledTimes(0);
-
-    expect(store.getState().post.list.items).toEqual({
+    expect(postStore.getState().post.list.items).toEqual({
       1: { id: 1 },
       123: { id: 123 },
     });
+
+    await postStore.dispatch(post.actions['list/clean']());
+
+    expect(postStore.getState().post.list.items).toEqual({});
+
+    //
+
+    const crudlBook = new CRUDL('book', {
+      client: () => Promise.reject('foo, bar!'),
+    });
+
+    const book = CRUDLReduxAdapter(crudlBook);
+
+    const bookAction = jest.spyOn(book.actions, 'list');
+
+    const bookSlice = createSlice(book.slice);
+
+    const bookStore = configureStore({
+      reducer: {
+        book: bookSlice.reducer,
+      },
+    });
+
+    await bookStore.dispatch(book.actions.list({ page: 10 }));
+
+    expect(bookAction).toHaveBeenCalledTimes(1);
+    expect(bookAction).toHaveBeenCalledWith({ page: 10 });
+
+    expect(bookStore.getState().book.list.failure).toEqual('foo, bar!');
+    expect(bookStore.getState().book.list.items).toEqual({});
+
+    await bookStore.dispatch(book.actions['list/clean']());
+
+    expect(bookStore.getState().book.list.failure).toEqual(null);
+    expect(bookStore.getState().book.list.items).toEqual({});
   });
 });

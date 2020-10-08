@@ -1,8 +1,8 @@
-import dataGenerator from '@/generators/data';
+import CRUDL from '@/index';
 
 describe('generators/endpoints', () => {
   it('should return the initial data for all operations', () => {
-    expect(dataGenerator('post')).toEqual({
+    expect(new CRUDL('post').schema).toEqual({
       create: {
         loading: false,
         failure: null,
@@ -36,10 +36,10 @@ describe('generators/endpoints', () => {
     });
   });
 
-  it('should only return initial data for included operations', () => {
-    expect(dataGenerator('post', {
+  it('should return initial data for included operations only', () => {
+    expect(new CRUDL('post', {
       include: ['update', 'list'],
-    })).toEqual({
+    }).schema).toEqual({
       update: {
         loading: false,
         failure: null,
