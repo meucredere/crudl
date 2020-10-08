@@ -182,7 +182,7 @@ Would result in a request fired to `/blogs/1/posts/2/reviewed`.
 Additional parameters are allowed, of course, and crudl takes case of excluding endpoint parameters from the final query (for GET requests) or request body, so you don't end up with repeating parameters like `/blogs/1/posts/2/reviewed?category_id=1&post=2`. To illustrate that, a dispatch like this:
 
 ```js
-dispatch('blogPosts/read', {
+dispatch('blogPost/read', {
   category_id: 1,
   id: 2,
   read: false,
@@ -214,17 +214,17 @@ It can be very useful for things like infinity scrolling.
 To illustrate that:
 
 ```js
-dispatch('users/list', { page: 1 });
+dispatch('user/list', { page: 1 });
 // ...
-dispatch('users/list', { page: 2 });
+dispatch('user/list', { page: 2 });
 ```
 
 Would wipe page 1 of users from your data (state), but:
 
 ```js
-dispatch('users/list', { page: 1 });
+dispatch('user/list', { page: 1 });
 // ...
-dispatch('users/list', { page: 2, crudl: { preserve: true } });
+dispatch('user/list', { page: 2, crudl: { preserve: true } });
 ```
 
 Would keep both pages on your data (state).
@@ -234,11 +234,11 @@ And could also be useful for things like refreshing the user profile without fla
 To illustrate that:
 
 ```js
-dispatch('users/read', { id: 1 });
+dispatch('user/read', { id: 1 });
 // loading...
 // success!
 // user.name -> 'John Doe'
-dispatch('users/read', { id: 1 });
+dispatch('user/read', { id: 1 });
 // loading...
 // user.name -> undefined
 // success!
@@ -248,11 +248,11 @@ dispatch('users/read', { id: 1 });
 Would wipe user data (state) before start the new request, but:
 
 ```js
-dispatch('users/read', { id: 1 });
+dispatch('user/read', { id: 1 });
 // loading...
 // success!
 // user.name -> 'John Doe'
-dispatch('users/read', { id: 1, crudl: { preserve: true } });
+dispatch('user/read', { id: 1, crudl: { preserve: true } });
 // loading...
 // user.name -> 'John Doe'
 // success!
@@ -372,88 +372,96 @@ Controls if the original data object or a copy of it should be changed by the cr
 All examples bellow are based on a `user` module:
 
 ```js
-const user = new CRUDL('user', { foo: 'bar' });
+const blogPost = new CRUDL('blogPost', {
+  foo: 'bar'
+});
+
+// so...
+// blogPost.key
+// blogPost.config
+// blogPost.constants
+// ...etc
 ```
 
-### user.key
+### key
 Module key
 
 ```
-user
+blogPost
 ```
 
-### user.config
+### config
 Custom config provided by the user at the module initialization
 
 ```js
 { foo: 'bar' }
 ```
 
-### user.constants
+### constants
 Used as `mutation types` on Vuex and `action types` on Redux
 
 ```js
 {
   create: {
-    clean: 'CRUDL/USER/CREATE/CLEAN',
-    failure: 'CRUDL/USER/CREATE/FAILURE',
-    start: 'CRUDL/USER/CREATE/START',
-    success: 'CRUDL/USER/CREATE/SUCCESS'
+    clean: 'CRUDL/BLOG_POST/CREATE/CLEAN',
+    failure: 'CRUDL/BLOG_POST/CREATE/FAILURE',
+    start: 'CRUDL/BLOG_POST/CREATE/START',
+    success: 'CRUDL/BLOG_POST/CREATE/SUCCESS'
   },
   read: {
-    clean: 'CRUDL/USER/READ/CLEAN',
-    failure: 'CRUDL/USER/READ/FAILURE',
-    start: 'CRUDL/USER/READ/START',
-    success: 'CRUDL/USER/READ/SUCCESS'
+    clean: 'CRUDL/BLOG_POST/READ/CLEAN',
+    failure: 'CRUDL/BLOG_POST/READ/FAILURE',
+    start: 'CRUDL/BLOG_POST/READ/START',
+    success: 'CRUDL/BLOG_POST/READ/SUCCESS'
   },
   update: {
-    clean: 'CRUDL/USER/UPDATE/CLEAN',
-    failure: 'CRUDL/USER/UPDATE/FAILURE',
-    start: 'CRUDL/USER/UPDATE/START',
-    success: 'CRUDL/USER/UPDATE/SUCCESS'
+    clean: 'CRUDL/BLOG_POST/UPDATE/CLEAN',
+    failure: 'CRUDL/BLOG_POST/UPDATE/FAILURE',
+    start: 'CRUDL/BLOG_POST/UPDATE/START',
+    success: 'CRUDL/BLOG_POST/UPDATE/SUCCESS'
   },
   delete: {
-    clean: 'CRUDL/USER/DELETE/CLEAN',
-    failure: 'CRUDL/USER/DELETE/FAILURE',
-    start: 'CRUDL/USER/DELETE/START',
-    success: 'CRUDL/USER/DELETE/SUCCESS'
+    clean: 'CRUDL/BLOG_POST/DELETE/CLEAN',
+    failure: 'CRUDL/BLOG_POST/DELETE/FAILURE',
+    start: 'CRUDL/BLOG_POST/DELETE/START',
+    success: 'CRUDL/BLOG_POST/DELETE/SUCCESS'
   },
   list: {
-    clean: 'CRUDL/USER/LIST/CLEAN',
-    failure: 'CRUDL/USER/LIST/FAILURE',
-    start: 'CRUDL/USER/LIST/START',
-    success: 'CRUDL/USER/LIST/SUCCESS'
+    clean: 'CRUDL/BLOG_POST/LIST/CLEAN',
+    failure: 'CRUDL/BLOG_POST/LIST/FAILURE',
+    start: 'CRUDL/BLOG_POST/LIST/START',
+    success: 'CRUDL/BLOG_POST/LIST/SUCCESS'
   }
 }
 ```
 
-### user.endpoints
+### endpoints
 Used internally to fire requests to the right paths and compile URL parameters
 
 ```js
 {
-  create: '/users',
-  delete: '/users/:id',
-  list: '/users',
-  read: '/users/:id',
-  update: '/users/:id'
+  create: '/blog_posts',
+  delete: '/blog_posts/:id',
+  list: '/blog_posts',
+  read: '/blog_posts/:id',
+  update: '/blog_posts/:id'
 }
 ```
 
-### user.keys
+### keys
 Used internally to unwrap JSON responses
 
 ```js
 {
-  create: 'user',
-  read: 'user',
-  update: 'user',
-  delete: 'user',
-  list: 'users'
+  create: 'blogPost',
+  read: 'blogPost',
+  update: 'blogPost',
+  delete: 'blogPost',
+  list: 'blogPosts'
 }
 ```
 
-### user.methods
+### methods
 Used internally to fire requests using the right HTTP methods
 
 ```js
@@ -466,35 +474,35 @@ Used internally to fire requests using the right HTTP methods
 }
 ```
 
-### user.modifiers
+### modifiers
 Used as `mutations` on Vuex and `reducers` on Redux
 
 ```js
 {
-  'CRUDL/USER/CREATE/CLEAN': Function,
-  'CRUDL/USER/CREATE/FAILURE': Function,
-  'CRUDL/USER/CREATE/START': Function,
-  'CRUDL/USER/CREATE/SUCCESS': Function,
-  'CRUDL/USER/READ/CLEAN': Function,
-  'CRUDL/USER/READ/FAILURE': Function,
-  'CRUDL/USER/READ/START': Function,
-  'CRUDL/USER/READ/SUCCESS': Function,
-  'CRUDL/USER/UPDATE/CLEAN': Function,
-  'CRUDL/USER/UPDATE/FAILURE': Function,
-  'CRUDL/USER/UPDATE/START': Function,
-  'CRUDL/USER/UPDATE/SUCCESS': Function,
-  'CRUDL/USER/DELETE/CLEAN': Function,
-  'CRUDL/USER/DELETE/FAILURE': Function,
-  'CRUDL/USER/DELETE/START': Function,
-  'CRUDL/USER/DELETE/SUCCESS': Function,
-  'CRUDL/USER/LIST/CLEAN': Function,
-  'CRUDL/USER/LIST/FAILURE': Function,
-  'CRUDL/USER/LIST/START': Function,
-  'CRUDL/USER/LIST/SUCCESS': Function
+  'CRUDL/BLOG_POST/CREATE/CLEAN': Function,
+  'CRUDL/BLOG_POST/CREATE/FAILURE': Function,
+  'CRUDL/BLOG_POST/CREATE/START': Function,
+  'CRUDL/BLOG_POST/CREATE/SUCCESS': Function,
+  'CRUDL/BLOG_POST/READ/CLEAN': Function,
+  'CRUDL/BLOG_POST/READ/FAILURE': Function,
+  'CRUDL/BLOG_POST/READ/START': Function,
+  'CRUDL/BLOG_POST/READ/SUCCESS': Function,
+  'CRUDL/BLOG_POST/UPDATE/CLEAN': Function,
+  'CRUDL/BLOG_POST/UPDATE/FAILURE': Function,
+  'CRUDL/BLOG_POST/UPDATE/START': Function,
+  'CRUDL/BLOG_POST/UPDATE/SUCCESS': Function,
+  'CRUDL/BLOG_POST/DELETE/CLEAN': Function,
+  'CRUDL/BLOG_POST/DELETE/FAILURE': Function,
+  'CRUDL/BLOG_POST/DELETE/START': Function,
+  'CRUDL/BLOG_POST/DELETE/SUCCESS': Function,
+  'CRUDL/BLOG_POST/LIST/CLEAN': Function,
+  'CRUDL/BLOG_POST/LIST/FAILURE': Function,
+  'CRUDL/BLOG_POST/LIST/START': Function,
+  'CRUDL/BLOG_POST/LIST/SUCCESS': Function
 }
 ```
 
-### user.operations
+### operations
 Used internally to mount endpoints, handle JSON responses correctly, etc
 
 ```js
@@ -527,7 +535,7 @@ Used internally to mount endpoints, handle JSON responses correctly, etc
 }
 ```
 
-### user.requests
+### requests
 Used as `actions` on both Vuex and Redux
 
 ```js
@@ -540,7 +548,7 @@ Used as `actions` on both Vuex and Redux
 }
 ```
 
-### user.cleaners
+### cleaners
 Used as `actions` on both Vuex and Redux, but mapped to `${action}/clean`
 
 ```js
@@ -553,7 +561,7 @@ Used as `actions` on both Vuex and Redux, but mapped to `${action}/clean`
 }
 ```
 
-### user.schema
+### schema
 Used as `initialState` on both Vuex and Redux
 
 ```js
@@ -591,7 +599,7 @@ Used as `initialState` on both Vuex and Redux
 }
 ```
 
-## Adapters sample implementations
+## Adapters implementations examples
 Snippets using real framework stores
 
 ### @crudl/vuex-adapter
