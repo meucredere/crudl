@@ -3,7 +3,7 @@
 
 import irregularPlurals from 'irregular-plurals/irregular-plurals.json';
 
-export default function pluralFinder(word = '') {
+export default function plural(word = '') {
   // catch irregular plural nouns red-handed
   if (irregularPlurals[word]) {
     return irregularPlurals[word];

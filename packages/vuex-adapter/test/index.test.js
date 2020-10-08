@@ -1,15 +1,15 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-import crudlVuexAdapter from '@/index';
-import crudl from '@crudl/core';
+import CRUDL from '@crudl/core';
+import CRUDLVuexAdapter from '@/index';
 
 Vue.use(Vuex);
 
 describe('@crudl/vuex-adapter', () => {
   it('should map crudl -> vuex properties correctly', () => {
-    const crudlPost = crudl('post');
-    const post = crudlVuexAdapter(crudlPost);
+    const crudlPost = new CRUDL('post');
+    const post = CRUDLVuexAdapter(crudlPost);
 
     expect(post).toEqual({
       namespaced: true,
@@ -38,10 +38,15 @@ describe('@crudl/vuex-adapter', () => {
       },
       actions: {
         create: expect.any(Function),
+        'create/clean': expect.any(Function),
         delete: expect.any(Function),
+        'delete/clean': expect.any(Function),
         list: expect.any(Function),
+        'list/clean': expect.any(Function),
         read: expect.any(Function),
+        'read/clean': expect.any(Function),
         update: expect.any(Function),
+        'update/clean': expect.any(Function),
       },
     });
 
@@ -80,25 +85,25 @@ describe('@crudl/vuex-adapter', () => {
   });
 
   it('should map crudl requests and modifiers callbacks to vuex actions and commits correctly', async () => {
-    const crudlPost = crudl('post', {
+    const crudlPost = new CRUDL('post', {
       client: () => Promise.resolve({ data: { posts: [{ id: 1 }, { id: 123 }] } }),
     });
 
-    const post = crudlVuexAdapter(crudlPost);
 
+    const post = CRUDLVuexAdapter(crudlPost);
     const postAction = jest.spyOn(post.actions, 'list');
 
     const postStart = jest.spyOn(post.mutations, crudlPost.constants.list.start);
     const postSuccess = jest.spyOn(post.mutations, crudlPost.constants.list.success);
     const postError = jest.spyOn(post.mutations, crudlPost.constants.list.failure);
 
-    const store = new Vuex.Store({
+    const postStore = new Vuex.Store({
       modules: {
         post,
       },
     });
 
-    await store.dispatch('post/list', { page: 1 });
+    await postStore.dispatch('post/list', { page: 1 });
 
     expect(postAction).toHaveBeenCalledTimes(1);
     expect(postAction).toHaveBeenCalledWith(expect.any(Object), { page: 1 });
@@ -111,30 +116,35 @@ describe('@crudl/vuex-adapter', () => {
 
     expect(postError).toHaveBeenCalledTimes(0);
 
-    expect(store.state.post.list.items).toEqual({
+    expect(postStore.state.post.list.items).toEqual({
       1: { id: 1 },
       123: { id: 123 },
     });
 
-    const crudlBook = crudl('book', {
+    await postStore.dispatch('post/list/clean');
+
+    expect(postStore.state.post.list.items).toEqual({});
+
+    //
+
+    const crudlBook = new CRUDL('book', {
       client: () => Promise.reject(new Error('foo, bar!')),
     });
 
-    const book = crudlVuexAdapter(crudlBook);
-
+    const book = CRUDLVuexAdapter(crudlBook);
     const bookAction = jest.spyOn(book.actions, 'list');
 
     const bookStart = jest.spyOn(book.mutations, crudlBook.constants.list.start);
     const bookSuccess = jest.spyOn(book.mutations, crudlBook.constants.list.success);
     const bookError = jest.spyOn(book.mutations, crudlBook.constants.list.failure);
 
-    const storeB = new Vuex.Store({
+    const bookStore = new Vuex.Store({
       modules: {
         book,
       },
     });
 
-    await storeB.dispatch('book/list', { page: 1 });
+    await bookStore.dispatch('book/list', { page: 1 });
 
     expect(bookAction).toHaveBeenCalledTimes(1);
     expect(bookAction).toHaveBeenCalledWith(expect.any(Object), { page: 1 });
@@ -147,6 +157,12 @@ describe('@crudl/vuex-adapter', () => {
     expect(bookError).toHaveBeenCalledTimes(1);
     expect(bookError).toHaveBeenCalledWith(expect.any(Object), new Error('foo, bar!'));
 
-    expect(storeB.state.book.list.items).toEqual({});
+    expect(bookStore.state.book.list.failure).toEqual(new Error('foo, bar!'));
+    expect(bookStore.state.book.list.items).toEqual({});
+
+    await bookStore.dispatch('book/list/clean');
+
+    expect(bookStore.state.book.list.failure).toEqual(null);
+    expect(bookStore.state.book.list.items).toEqual({});
   });
 });

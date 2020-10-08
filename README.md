@@ -1,0 +1,649 @@
+# crudl
+Abstracts and handles common JSON RESTful APIs requests and responses
+
+[![npm version][npm-image]][npm-url]
+
+[npm-image]: https://img.shields.io/npm/v/@crudl/core.svg
+[npm-url]: https://npmjs.org/package/@crudl/core
+
+## What is it?
+
+crudl's goal is to abstract the most common RESTful requests and basic data handling of every frontend developer's day-to-day coding.
+
+It currently has adapters for [Vuex](https://github.com/vuejs/vuex) (@crudl/vuex-adapter) and [Redux](https://github.com/reduxjs/redux) (@crudl/redux-dapter) - more as a way of portraying its portability and provide sample code than "officially" supporting them, as crudl exposes its main getters for easily integrating with other JavaScript frameworks or vanillaing your way out of it.
+
+## So... what exactly does it do?
+
+crudl provides an extendable and highly customizable set of request handlers for `create`, `read`, `update`, `delete` and `list` actions.
+
+It handles things like initial state schema, requests (actions in both Vuex and Redux), modifiers (mutations in Vuex, reducers in Redux), key pluralization and snake_casing on request responses, error normalization, among other useful things so you can have entire working RESTful modules with just a few lines of JavaScript:
+
+```js
+import CRUDL from '@crudl/core';
+import adapter from '@crudl/vuex-adapter';
+// import adapter from '@crudl/redux-adapter';
+
+export default adapter(new CRUDL('blogPost'));
+```
+
+And that's it! You're good to go.
+
+## Installation
+
+```bash
+npm install @crudl/core
+npm install @crudl/vuex-adapter
+# or npm install @crudl/redux-adapter
+```
+
+## How does it handle data?
+
+Data follows this format:
+
+- `create`, `read`, `update` and `delete` all have the same format:
+
+```js
+{
+  item: { id: 123, foo: 'x' },
+  loading: false, // boolean
+  failure: null, // HTTP client `Error` or request JSON response
+  config: {} // crudl's internal request config
+}
+```
+
+- `list`, on the other hand, has its exclusive format:
+
+```js
+{
+  items: {
+    123: { id: 123, foo: 'x' },
+    456: { id: 456, foo: 'y' }
+  },
+  loading: false,
+  failure: null,
+  config: {}
+}
+```
+
+Data (state) can be accessed using the crudl module's default key:
+
+```
+state
+  -> module_key
+    -> [create|read|update|delete|list]
+      -> [item|items|loading|failure|config]
+```
+
+To illustrate that using framework formats:
+
+- Redux: store.getState().`blogPost`.`list`.`loading`
+- Vuex: store.state.`blogPost`.`list`.`loading`
+
+## Is it customizable, though?
+
+Yes.
+
+By default, it expect target APIs to follow some RESTful patterns, like:
+
+### For endpoints:
+
+- **Create** -> *POST* -> /blog_posts
+- **Read** -> *GET* -> /blog_posts/:id
+- **Update** -> *PUT* -> /blog_posts/:id
+- **Delete** -> *DELETE* -> /blog_posts/:id
+- **List** -> *GET* -> /blog_posts
+
+But custom ones can be provided to your needs:
+
+```js
+new CRUDL('blogPost', {
+  methods: {
+    delete: 'get',
+    update: 'patch'
+  },
+  endpoints: {
+    read: '/blogs/:category_id/posts/:id/reviewed'
+  }
+});
+```
+
+Responses are also expected to follow RESTful patterns:
+
+- Single items: `{ blog_post: { id: 1, foo: 'x' } }`
+- Multiple items: `{ blog_posts: [{ id: 1, foo: 'x' }, { id: 2, foo: 'y' }] }`
+
+But crudl can also be customized to accept responses like this one:
+
+- Read: `{ custom_key: { id: 123, foo: 'bar' } }`
+- Update: `{ id: 123, foo: 'bar' }` (keyless)
+
+Simply by doing this:
+
+```js
+new CRUDL('blogPost', {
+  keys: {
+    read: 'custom_key',
+    update: '' // keyless response
+  }
+});
+```
+
+Among other things. You can find more custom settings on the "basic, advanced and expert customizations" sections bellow.
+
+The snake_casing and pluralization on endpoints and JSON keys on responses are handled by crudl behind the scenes. No need to worry about that.
+
+## HTTP client
+
+crudl requires an HTTP client by default, and [axios](https://github.com/axios/axios) was used for its development, so it is the one recomended. Any client should work, though, as long as it follows these two rules:
+
+### 1. Fires requests using the following format:
+```js
+client('/url/here', {
+  method: 'get, post, ...',
+  data: {} // params: {} on GET requests
+});
+```
+
+### 2. Responds using the following formats:
+- `{ data: API_JSON_RESPONSE }` on **success**
+- `Error { response: { data: API_JSON_ERROR } }` on **failure**
+
+You can set the CRUDL default HTTP client on a global basis:
+
+```js
+CRUDL.client = axiosClient;
+```
+
+Or by module:
+
+```js
+new CRUDL('blogPost', {
+  client: axiosClient
+});
+```
+
+## URL parsing (endpoints)
+Request payload options - part 1
+
+- Redux: `dispatch(blogPost.actions.read(payload))`
+- Vuex: `dispatch('blogPost/read', payload)`
+
+A endpoint like this `/blogs/:category_id/posts/:id/reviewed` requires that `category_id` and `id` are present on the payload. To illustrate that, a dispatch like this:
+
+```js
+dispatch('blogPost/read', {
+  category_id: 1,
+  id: 2
+});
+```
+
+Would result in a request fired to `/blogs/1/posts/2/reviewed`.
+
+Additional parameters are allowed, of course, and crudl takes case of excluding endpoint parameters from the final query (for GET requests) or request body, so you don't end up with repeating parameters like `/blogs/1/posts/2/reviewed?category_id=1&post=2`. To illustrate that, a dispatch like this:
+
+```js
+dispatch('blogPosts/read', {
+  category_id: 1,
+  id: 2,
+  read: false,
+  reactions: true
+});
+```
+
+Would result in a request fired to `/blogs/1/posts/2/reviewed?read=false&reactions=true`.
+
+## Reseting data (state)
+
+Each request (a.k.a. `action` in both Vuex and Redux) have their respective cleaners that can be called using:
+
+- Redux: `dispatch(post.actions['read/clean']())`
+- Vuex: `dispatch('post/read/clean')`
+
+## Internal crudl request options
+Request payload options - part 2
+
+- Redux: `dispatch(post.actions.read(payload))`
+- Vuex: `dispatch('post/read', payload)`
+
+crudl has some internal payload configs that are ommited from the final requests but can act as request settings:
+
+### 1. **preserve**
+
+It can be very useful for things like infinity scrolling.
+
+To illustrate that:
+
+```js
+dispatch('users/list', { page: 1 });
+// ...
+dispatch('users/list', { page: 2 });
+```
+
+Would wipe page 1 of users from your data (state), but:
+
+```js
+dispatch('users/list', { page: 1 });
+// ...
+dispatch('users/list', { page: 2, crudl: { preserve: true } });
+```
+
+Would keep both pages on your data (state).
+
+And could also be useful for things like refreshing the user profile without flashing an empty profile page during the request.
+
+To illustrate that:
+
+```js
+dispatch('users/read', { id: 1 });
+// loading...
+// success!
+// user.name -> 'John Doe'
+dispatch('users/read', { id: 1 });
+// loading...
+// user.name -> undefined
+// success!
+// user.name -> 'Johnny Doe'
+```
+
+Would wipe user data (state) before start the new request, but:
+
+```js
+dispatch('users/read', { id: 1 });
+// loading...
+// success!
+// user.name -> 'John Doe'
+dispatch('users/read', { id: 1, crudl: { preserve: true } });
+// loading...
+// user.name -> 'John Doe'
+// success!
+// user.name -> 'Johnny Doe'
+```
+
+Would keep old user data (state) while fetching the updated one.
+
+## Basic customization
+
+### key
+Module name
+
+**IMPORTANT**: Module name should always be in the singular and in camelCase, for simplification and performance (kb-weight-wise) purposes.
+
+```js
+new CRUDL('user');     // camelCased, singular
+new CRUDL('blogPost'); // camelCased, singular
+```
+
+### client
+crudl's HTTP client ([axios](https://github.com/axios/axios) is highly recommended)
+
+Setting a global client:
+
+```js
+CRUDL.client = httpClient;
+```
+
+Setting a per-module HTTP client:
+
+```js
+{
+  client: httpClient
+}
+```
+
+## Advanced customization
+
+(All samples bellow will use `blogPost` as default module name for easier understanding). For RESTful APIs you should not need to touch these at all.
+
+### endpoints
+API endpoint (path) to which the request will be fired
+
+```js
+{
+  endpoint: {
+    create: '/blog_posts',
+    read: '/blog_posts/:id',
+    update: '/blog_posts/:id',
+    delete: '/blog_posts/:id',
+    list: '/blog_posts'
+  }
+}
+```
+
+### keys
+Key in which the expected JSON responses should be wrapped
+
+```js
+{
+  key: {
+    create: 'blog_post',
+    read: 'blog_post',
+    update: 'blog_post',
+    delete: 'blog_post',
+    list: 'blog_posts'
+  }
+}
+```
+
+### methods
+HTTP method (verb) for each crudl action
+
+```js
+{
+  methods: {
+    create: 'post',
+    read: 'get',
+    update: 'put',
+    delete: 'delete',
+    list: 'get'
+  }
+}
+```
+
+## Expert customization
+
+### executors
+Functions responsible for handing data (state) changes on request results
+
+It is worth noting that for this configuration, specifically, you're required to provide all four executors (`clean`, `start`, `success` and `failure`) to crudl. You can learn more about crudl's executors by reading the default ones' source code on `./packages/core/src/executors`. A few helper functions are available to assist you achieve that goal.
+
+```js
+{
+  executors: {
+    clean: Function,
+    start: Function,
+    success: Function,
+    failure: Function
+  }
+}
+```
+
+### spread
+Update the original data (state) object or make and update a copy of the data
+
+Controls if the original data object or a copy of it should be changed by the crudl executors. `true` means "do a copy of the data object, update and return it" and `false` means "update the original data object and return it".
+
+```js
+{
+  spread: false
+}
+```
+
+## Available getters:
+All examples bellow are based on a `user` module:
+
+```js
+const user = new CRUDL('user', { foo: 'bar' });
+```
+
+### user.key
+Module key
+
+```
+user
+```
+
+### user.config
+Custom config provided by the user at the module initialization
+
+```js
+{ foo: 'bar' }
+```
+
+### user.constants
+Used as `mutation types` on Vuex and `action types` on Redux
+
+```js
+{
+  create: {
+    clean: 'CRUDL/USER/CREATE/CLEAN',
+    failure: 'CRUDL/USER/CREATE/FAILURE',
+    start: 'CRUDL/USER/CREATE/START',
+    success: 'CRUDL/USER/CREATE/SUCCESS'
+  },
+  read: {
+    clean: 'CRUDL/USER/READ/CLEAN',
+    failure: 'CRUDL/USER/READ/FAILURE',
+    start: 'CRUDL/USER/READ/START',
+    success: 'CRUDL/USER/READ/SUCCESS'
+  },
+  update: {
+    clean: 'CRUDL/USER/UPDATE/CLEAN',
+    failure: 'CRUDL/USER/UPDATE/FAILURE',
+    start: 'CRUDL/USER/UPDATE/START',
+    success: 'CRUDL/USER/UPDATE/SUCCESS'
+  },
+  delete: {
+    clean: 'CRUDL/USER/DELETE/CLEAN',
+    failure: 'CRUDL/USER/DELETE/FAILURE',
+    start: 'CRUDL/USER/DELETE/START',
+    success: 'CRUDL/USER/DELETE/SUCCESS'
+  },
+  list: {
+    clean: 'CRUDL/USER/LIST/CLEAN',
+    failure: 'CRUDL/USER/LIST/FAILURE',
+    start: 'CRUDL/USER/LIST/START',
+    success: 'CRUDL/USER/LIST/SUCCESS'
+  }
+}
+```
+
+### user.endpoints
+Used internally to fire requests to the right paths and compile URL parameters
+
+```js
+{
+  create: '/users',
+  delete: '/users/:id',
+  list: '/users',
+  read: '/users/:id',
+  update: '/users/:id'
+}
+```
+
+### user.keys
+Used internally to unwrap JSON responses
+
+```js
+{
+  create: 'user',
+  read: 'user',
+  update: 'user',
+  delete: 'user',
+  list: 'users'
+}
+```
+
+### user.methods
+Used internally to fire requests using the right HTTP methods
+
+```js
+{
+  create: 'post',
+  delete: 'delete',
+  list: 'get',
+  read: 'get',
+  update: 'put'
+}
+```
+
+### user.modifiers
+Used as `mutations` on Vuex and `reducers` on Redux
+
+```js
+{
+  'CRUDL/USER/CREATE/CLEAN': Function,
+  'CRUDL/USER/CREATE/FAILURE': Function,
+  'CRUDL/USER/CREATE/START': Function,
+  'CRUDL/USER/CREATE/SUCCESS': Function,
+  'CRUDL/USER/READ/CLEAN': Function,
+  'CRUDL/USER/READ/FAILURE': Function,
+  'CRUDL/USER/READ/START': Function,
+  'CRUDL/USER/READ/SUCCESS': Function,
+  'CRUDL/USER/UPDATE/CLEAN': Function,
+  'CRUDL/USER/UPDATE/FAILURE': Function,
+  'CRUDL/USER/UPDATE/START': Function,
+  'CRUDL/USER/UPDATE/SUCCESS': Function,
+  'CRUDL/USER/DELETE/CLEAN': Function,
+  'CRUDL/USER/DELETE/FAILURE': Function,
+  'CRUDL/USER/DELETE/START': Function,
+  'CRUDL/USER/DELETE/SUCCESS': Function,
+  'CRUDL/USER/LIST/CLEAN': Function,
+  'CRUDL/USER/LIST/FAILURE': Function,
+  'CRUDL/USER/LIST/START': Function,
+  'CRUDL/USER/LIST/SUCCESS': Function
+}
+```
+
+### user.operations
+Used internally to mount endpoints, handle JSON responses correctly, etc
+
+```js
+{
+  create: {
+    name: 'create',
+    identified: false,
+    multiple: false
+  },
+  read: {
+    name: 'read',
+    identified: true,
+    multiple: false
+  },
+  update: {
+    name: 'update',
+    identified: true,
+    multiple: false
+  },
+  delete: {
+    name: 'delete',
+    identified: true,
+    multiple: false
+  },
+  list: {
+    name: 'list',
+    identified: false,
+    multiple: true
+  }
+}
+```
+
+### user.requests
+Used as `actions` on both Vuex and Redux
+
+```js
+{
+  create: Function,
+  read: Function,
+  update: Function,
+  delete: Function,
+  list: Function,
+}
+```
+
+### user.cleaners
+Used as `actions` on both Vuex and Redux, but mapped to `${action}/clean`
+
+```js
+{
+  create: Function,
+  read: Function,
+  update: Function,
+  delete: Function,
+  list: Function,
+}
+```
+
+### user.schema
+Used as `initialState` on both Vuex and Redux
+
+```js
+{
+  create: {
+    loading: false,
+    failure: null,
+    config: {},
+    item: {}
+  },
+  read: {
+    loading: false,
+    failure: null,
+    config: {},
+    item: {}
+  },
+  update: {
+    loading: false,
+    failure: null,
+    config: {},
+    item: {}
+  },
+  delete: {
+    loading: false,
+    failure: null,
+    config: {},
+    item: {}
+  },
+  list: {
+    loading: false,
+    failure: null,
+    config: {},
+    items: {}
+  },
+}
+```
+
+## Adapters sample implementations
+Snippets using real framework stores
+
+### @crudl/vuex-adapter
+
+```js
+import CRUDL from '@crudl/core';
+import adapter from '@crudl/vuex-adapter';
+
+import Vue from 'vue';
+import Vuex from 'vuex';
+
+import axios from 'axios';
+
+Vue.use(Vuex);
+
+CRUDL.client = axios.create({ baseURL: 'https://api.url' });
+
+const store = new Vuex.Store({
+  modules: {
+    post: adapter(new CRUDL('post')),
+    user: adapter(new CRUDL('user')),
+  },
+});
+
+store.dispatch('post/read', { id: 1 });
+store.dispatch('user/create', { name: 'JohnDoe', age: 21 });
+```
+
+### @crudl/redux-adapter
+
+```js
+import CRUDL from '@crudl/core';
+import adapter from '@crudl/redux-adapter';
+
+import { createSlice, configureStore } from '@reduxjs/toolkit';
+
+CRUDL.client = axios.create({ baseURL: 'https://api.url' });
+
+const post = adapter(new CRUDL('post'));
+const user = adapter(new CRUDL('user'));
+
+const store = configureStore({
+  reducer: {
+    post: createSlice(post.slice).reducer,
+    user: createSlice(user.slice).reducer,
+  },
+});
+
+store.dispatch(post.actions.read({ id: 1 }));
+store.dispatch(user.actions.read({ name: 'JohnDoe', age: 21 }));
+```
+
+## License
+
+This project is licensed under the MIT License.

@@ -1,8 +1,8 @@
 // maps crudl requests to redux actions
-function actions(key, requests) {
+function actions(key, requests, suffix = '') {
   function reduce(obj, request) {
     // eslint-disable-next-line no-param-reassign
-    obj[request] = function reduxAction(params) {
+    obj[`${request}${suffix}`] = function reduxAction(params) {
       return async function reduxThunk(typeDispatch) {
         // maps crudl modifier executor callback to match redux's { type, payload }
         function dispatch(constant, payload) {
@@ -45,10 +45,13 @@ function adapter(crudl) {
   return {
     slice: {
       name: crudl.key,
-      initialState: crudl.data,
+      initialState: crudl.schema,
       reducers: reducers(crudl.modifiers),
     },
-    actions: actions(crudl.key, crudl.requests),
+    actions: {
+      ...actions(crudl.key, crudl.requests),
+      ...actions(crudl.key, crudl.cleaners, '/clean'),
+    },
   };
 }
 
