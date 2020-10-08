@@ -142,11 +142,12 @@ export default class CRUDL {
   // }
   get endpoints() {
     const endpoint = snakeCase(this.key, { multiple: true });
+    const identifier = this.config.identifier || 'id';
 
     // generates the pluralized "/posts" endpoints
-    // and, for identified operations, adds :id to generate "/posts/:id"
+    // and, for identified operations, adds the identifier key to generate "/posts/:id"
     return this.reduce(
-      (operation) => `/${endpoint}${operation.identified ? '/:id' : ''}`,
+      (operation) => `/${endpoint}${operation.identified ? `/:${identifier}` : ''}`,
       // custom endpoints
       this.config.endpoints,
     );

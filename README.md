@@ -8,13 +8,13 @@ Abstracts and handles common JSON RESTful APIs requests and responses
 
 ## What is it?
 
-crudl's goal is to abstract the most common RESTful requests and basic data handling of every frontend developer's day-to-day coding.
+crudl's goal is to abstract the most common RESTful requests and basic data handling of every frontend developer's everyday coding.
 
-It currently has adapters for [Vuex](https://github.com/vuejs/vuex) (@crudl/vuex-adapter) and [Redux](https://github.com/reduxjs/redux) (@crudl/redux-dapter) - more as a way of portraying its portability and provide sample code than "officially" supporting them, as crudl exposes its main getters for easily integrating with other JavaScript frameworks or vanillaing your way out of it.
+It currently has adapters for [Vuex](https://github.com/vuejs/vuex) (@crudl/vuex-adapter) and [Redux](https://github.com/reduxjs/redux) (@crudl/redux-dapter) - more as a way of portraying its portability and provide sample code than "officially" supporting them, as crudl exposes its main getters for easily integrating with other JavaScript frameworks or vanillaing your way out of them.
 
-## So... what exactly does it do?
+## What does it do?
 
-crudl provides an extendable and highly customizable set of request handlers for `create`, `read`, `update`, `delete` and `list` actions.
+crudl provides an extendable and highly customizable set of operation handlers for `create`, `read`, `update`, `delete` and `list` requests.
 
 It handles things like initial state schema, requests (actions in both Vuex and Redux), modifiers (mutations in Vuex, reducers in Redux), key pluralization and snake_casing on request responses, error normalization, among other useful things so you can have entire working RESTful modules with just a few lines of JavaScript:
 
@@ -28,6 +28,8 @@ export default adapter(new CRUDL('blogPost'));
 
 And that's it! You're good to go.
 
+crudl is not only lightweight (`~3kb` core, `<1kb` adapters, gziped), but it also helps you save tons of lines of code in modules or slices.
+
 ## Installation
 
 ```bash
@@ -36,7 +38,7 @@ npm install @crudl/vuex-adapter
 # or npm install @crudl/redux-adapter
 ```
 
-## How does it handle data?
+## Data handling
 
 Data follows this format:
 
@@ -74,26 +76,26 @@ state
       -> [item|items|loading|failure|config]
 ```
 
-To illustrate that using framework formats:
+To illustrate that using frameworks methods:
 
-- Redux: store.getState().`blogPost`.`list`.`loading`
-- Vuex: store.state.`blogPost`.`list`.`loading`
+- **Redux** -> store.getState().`blogPost`.`list`.`loading`
+- **Vuex** -> store.state.`blogPost`.`list`.`loading`
 
-## Is it customizable, though?
+It is important to note that crudl as it is does not store data at all, but only offers you a initial state and handling and processing of JSON responses, leaving the data storage and versioning to the frameworks working around it (like Vuex and Redux).
 
-Yes.
+## Customization
 
-By default, it expect target APIs to follow some RESTful patterns, like:
+By default, crudl expects target APIs to follow some RESTful patterns, like:
 
 ### For endpoints:
 
-- **Create** -> *POST* -> /blog_posts
-- **Read** -> *GET* -> /blog_posts/:id
-- **Update** -> *PUT* -> /blog_posts/:id
-- **Delete** -> *DELETE* -> /blog_posts/:id
-- **List** -> *GET* -> /blog_posts
+- **Create** -> *POST* -> `/blog_posts`
+- **Read** -> *GET* -> `/blog_posts/:id`
+- **Update** -> *PUT* -> `/blog_posts/:id`
+- **Delete** -> *DELETE* -> `/blog_posts/:id`
+- **List** -> *GET* -> `/blog_posts`
 
-But custom ones can be provided to your needs:
+But custom ones can be provided:
 
 ```js
 new CRUDL('blogPost', {
@@ -112,7 +114,9 @@ Responses are also expected to follow RESTful patterns:
 - Single items: `{ blog_post: { id: 1, foo: 'x' } }`
 - Multiple items: `{ blog_posts: [{ id: 1, foo: 'x' }, { id: 2, foo: 'y' }] }`
 
-But crudl can also be customized to accept responses like this one:
+The snake_casing and pluralization on endpoints and JSON keys on responses are handled by crudl behind the scenes. No need to worry about that.
+
+It can also be customized to handle responses like this one:
 
 - Read: `{ custom_key: { id: 123, foo: 'bar' } }`
 - Update: `{ id: 123, foo: 'bar' }` (keyless)
@@ -128,13 +132,11 @@ new CRUDL('blogPost', {
 });
 ```
 
-Among other things. You can find more custom settings on the "basic, advanced and expert customizations" sections bellow.
-
-The snake_casing and pluralization on endpoints and JSON keys on responses are handled by crudl behind the scenes. No need to worry about that.
+You can find more custom settings on the "basic, advanced and expert customizations" ahead.
 
 ## HTTP client
 
-crudl requires an HTTP client by default, and [axios](https://github.com/axios/axios) was used for its development, so it is the one recomended. Any client should work, though, as long as it follows these two rules:
+crudl requires an HTTP client by default. [axios](https://github.com/axios/axios) was used for its development, so it is the one recomended. Any client should work, though, as long as it follows these two rules:
 
 ### 1. Fires requests using the following format:
 ```js
@@ -145,10 +147,10 @@ client('/url/here', {
 ```
 
 ### 2. Responds using the following formats:
-- `{ data: API_JSON_RESPONSE }` on **success**
-- `Error { response: { data: API_JSON_ERROR } }` on **failure**
+- `{ data: API_SUCCESS_JSON_OBJECT }` on **success**
+- `Error { response: { data: API_ERROR_JSON_OBJECT } }` on **failure**
 
-You can set the CRUDL default HTTP client on a global basis:
+You can set the default HTTP client on a global basis:
 
 ```js
 CRUDL.client = axiosClient;
@@ -165,10 +167,10 @@ new CRUDL('blogPost', {
 ## URL parsing (endpoints)
 Request payload options
 
-- Redux: `dispatch(blogPost.actions.read(payload))`
-- Vuex: `dispatch('blogPost/read', payload)`
+- **Redux** -> `dispatch(blogPost.actions.read(payload))`
+- **Vuex** -> `dispatch('blogPost/read', payload)`
 
-A endpoint like this `/blogs/:category_id/posts/:id/reviewed` requires that `category_id` and `id` are present on the payload. To illustrate that, a dispatch like this:
+An endpoint like this `/blogs/:category_id/posts/:id/reviewed` requires that `category_id` and `id` are present on the payload. To illustrate that, a dispatch like this:
 
 ```js
 dispatch('blogPost/read', {
@@ -195,12 +197,12 @@ Would result in a request fired to `/blogs/1/posts/2/reviewed?read=false&reactio
 ## Internal crudl request options
 Request payload options
 
-- Redux: `dispatch(blogPost.actions.read(payload))`
-- Vuex: `dispatch('blogPost/read', payload)`
+- **Redux** -> `dispatch(blogPost.actions.read(payload))`
+- **Vuex** -> `dispatch('blogPost/read', payload)`
 
 crudl has some internal payload configs that are ommited from the final requests but can act as request settings:
 
-### **preserve**
+### preserve
 
 It can be very useful for things like infinity scrolling.
 
@@ -254,33 +256,46 @@ dispatch('user/read', { id: 1, crudl: { preserve: true } });
 
 Would keep old user data (state) while fetching the updated one.
 
+### populate
+@TODO
+
+### refresh
+@TODO
+
 ## Reseting data (state)
 
-Each request (a.k.a. `action` in both Vuex and Redux) have their respective cleaners that can be called using:
+Each operation has their own respective cleaners, which can be called using:
 
-- Redux: `dispatch(blogPost.actions['read/clean']())`
-- Vuex: `dispatch('blogPost/read/clean')`
+- **Redux** -> `dispatch(blogPost.actions['read/clean']())`
+- **Vuex** -> `dispatch('blogPost/read/clean')`
 
 ## Basic customization
 
 ### key
 Module name
 
-**IMPORTANT**: Module name should always be in the singular and in camelCase, for simplification and performance (kb-weight-wise) purposes.
+**IMPORTANT**: Module name **should always be in the singular and in camelCase**, for simplification and performance (kb-weight-wise) purposes.
 
 ```js
 new CRUDL('user');     // camelCased, singular
 new CRUDL('blogPost'); // camelCased, singular
 ```
 
-### client
-crudl's HTTP client ([axios](https://github.com/axios/axios) is highly recommended)
+### identifier
+Module's primary key
 
-Setting a global client:
+By default, `:id` (as in `blogPost.id`) will be used as unique item identifiers. You can change that behavior by providing the module's primary key to crudl:
 
 ```js
-CRUDL.client = httpClient;
+{
+  identifier: 'uuid'
+}
 ```
+
+So `blogPost.uuid` will be used instead. Note that this will also affect routes, so `/blog_posts/:id` will become `/blog_posts/:uuid`, so remember to adapt the request payload accordingly.
+
+### client
+crudl's HTTP client ([axios](https://github.com/axios/axios) is highly recommended)
 
 Setting a per-module HTTP client:
 
@@ -288,6 +303,34 @@ Setting a per-module HTTP client:
 {
   client: httpClient
 }
+```
+
+You can also set a global client so you don't have to provide the client in each module initialiation:
+
+```js
+CRUDL.client = httpClient;
+```
+
+### include | exclude
+Include or exclude module operations
+
+```js
+{
+  include: ['create', 'unknown']
+} // -> [create]
+```
+
+```js
+{
+  exclude: ['create', 'read']
+} // -> [update, delete, list]
+```
+
+```js
+{
+  include: ['create', 'read'],
+  exclude: ['create']
+} // -> [create]
 ```
 
 ## Advanced customization
@@ -369,7 +412,8 @@ Controls if the original data object or a copy of it should be changed by the cr
 ```
 
 ## Available getters:
-All examples bellow are based on a `user` module:
+
+All examples bellow are based on a `blogPost` module:
 
 ```js
 const blogPost = new CRUDL('blogPost', {
@@ -668,6 +712,32 @@ store.dispatch(user.actions.create({ name: 'John Doe', age: 21 }));
 store.dispatch(user.actions.create({ name: 'Johnny Foo', age: 16 }));
 // store.getState().user.create.failure
 //   -> { age: 'you must be 18 years old' }
+```
+
+## @TODO
+
+### An option to update data between requests (actions)
+
+To illustrate that:
+
+Update the `read.item` data if it has the same primary key (by default, `:id`) than the newly fired `update.item` action. The same goes to updating data between `create` -> `list`, `create` -> `read`, `read` -> `list` etc.
+
+That would probably be controlled by new options on the request payload:
+
+```js
+dispatch('user/update', {
+  name: 'John Junior',
+  age: 19,
+  crudl: {
+    // forces read.item to be update.item
+    // forces list.items to append update.item
+    populate: ['read', 'list'],
+
+    // read.item becomes update.item if they have the same :id
+    // list.items[item.id] gets updated if it already exists
+    refresh: ['read', 'list'],
+  }
+});
 ```
 
 ## License

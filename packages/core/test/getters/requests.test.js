@@ -96,6 +96,19 @@ describe('requests', () => {
 
       spy.mockRestore();
     });
+
+    it('should work with custom primary keys (identifiers)', async () => {
+      post = new CRUDL('post', { identifier: 'foobar' });
+
+      const spy = jest.spyOn(CRUDL, 'CLIENT');
+
+      await post.requests.read(custom, { id: 1, foobar: 'boofar' });
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenLastCalledWith('/posts/boofar', { params: { id: 1 }, method: 'get' });
+
+      spy.mockRestore();
+    });
   });
 
   it('should return all the default requests correctly', () => {

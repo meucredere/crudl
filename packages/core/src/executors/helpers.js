@@ -18,10 +18,10 @@ export function shouldOverwriteExistingItems(data, operation) {
 // [{ id: 1, name: a }, { id: 12, name: b }]
 // into
 // { 1: { id: 1, name: a }, 12: { id: 12, name: b } }
-export function extractResponseDataArray(items = [], property = 'id') {
+export function extractResponseDataArray(items = [], identifier = 'id') {
   function reducer(obj, item) {
     // eslint-disable-next-line no-param-reassign
-    obj[item[property]] = item;
+    obj[item[identifier]] = item;
 
     return obj;
   }
@@ -29,7 +29,7 @@ export function extractResponseDataArray(items = [], property = 'id') {
   return items.reduce(reducer, {});
 }
 
-export function extractResponseData(key, operation, data, response) {
+export function extractResponseData(key, operation, config, data, response) {
   const {
     multiple,
   } = operation;
@@ -51,7 +51,7 @@ export function extractResponseData(key, operation, data, response) {
 
   // returns the new keyed object of items for multiple items operations that do not preserve data
   if (shouldOverwriteExistingItems(data, operation)) {
-    return extractResponseDataArray(result);
+    return extractResponseDataArray(result, config.identifier);
   }
 
   // appends new results to the existing items data if the request is configured to preserve it
@@ -59,8 +59,8 @@ export function extractResponseData(key, operation, data, response) {
   return {
     ...data[operation.name][shouldUpdateItemOrItems(operation)],
     // transforms the data array into a keyed object using the
-    // custom primary key config (default primary identifier's fallback is "id")
-    ...extractResponseDataArray(result),
+    // custom primary key config (default identifier's fallback is "id")
+    ...extractResponseDataArray(result, config.identifier),
   };
 }
 

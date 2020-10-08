@@ -57,6 +57,7 @@ export function success(key, operation, config, data, response = {}) {
   modified[operation.name][shouldUpdateItemOrItems(operation)] = extractResponseData(
     key,
     operation,
+    config,
     data,
     response,
   );
