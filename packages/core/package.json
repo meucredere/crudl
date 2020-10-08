@@ -1,6 +1,6 @@
 {
   "name": "@crudl/core",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Abstracts and handles common JSON RESTful APIs requests and responses",
   "homepage": "https://github.com/meucredere/crudl",
   "author": "Kaio Cristian <credev@meucredere.com.br>",

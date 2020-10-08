@@ -1,6 +1,6 @@
 {
   "name": "@crudl/redux-adapter",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CRUDL's Redux adapter",
   "homepage": "https://github.com/meucredere/crudl",
   "author": "Kaio Cristian <credev@meucredere.com.br>",
@@ -22,7 +22,7 @@
     "test:watch": "jest --watchAll"
   },
   "devDependencies": {
-    "@crudl/core": "^0.0.2",
+    "@crudl/core": "^0.0.3",
     "@reduxjs/toolkit": "^1.4.0",
     "redux": "^4.0.5"
   },
