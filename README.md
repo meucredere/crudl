@@ -163,7 +163,7 @@ new CRUDL('blogPost', {
 ```
 
 ## URL parsing (endpoints)
-Request payload options - part 1
+Request payload options
 
 - Redux: `dispatch(blogPost.actions.read(payload))`
 - Vuex: `dispatch('blogPost/read', payload)`
@@ -192,22 +192,15 @@ dispatch('blogPost/read', {
 
 Would result in a request fired to `/blogs/1/posts/2/reviewed?read=false&reactions=true`.
 
-## Reseting data (state)
-
-Each request (a.k.a. `action` in both Vuex and Redux) have their respective cleaners that can be called using:
-
-- Redux: `dispatch(post.actions['read/clean']())`
-- Vuex: `dispatch('post/read/clean')`
-
 ## Internal crudl request options
-Request payload options - part 2
+Request payload options
 
-- Redux: `dispatch(post.actions.read(payload))`
-- Vuex: `dispatch('post/read', payload)`
+- Redux: `dispatch(blogPost.actions.read(payload))`
+- Vuex: `dispatch('blogPost/read', payload)`
 
 crudl has some internal payload configs that are ommited from the final requests but can act as request settings:
 
-### 1. **preserve**
+### **preserve**
 
 It can be very useful for things like infinity scrolling.
 
@@ -260,6 +253,13 @@ dispatch('user/read', { id: 1, crudl: { preserve: true } });
 ```
 
 Would keep old user data (state) while fetching the updated one.
+
+## Reseting data (state)
+
+Each request (a.k.a. `action` in both Vuex and Redux) have their respective cleaners that can be called using:
+
+- Redux: `dispatch(blogPost.actions['read/clean']())`
+- Vuex: `dispatch('blogPost/read/clean')`
 
 ## Basic customization
 
@@ -619,13 +619,22 @@ CRUDL.client = axios.create({ baseURL: 'https://api.url' });
 
 const store = new Vuex.Store({
   modules: {
-    post: adapter(new CRUDL('post')),
+    blogPost: adapter(new CRUDL('blogPost')),
     user: adapter(new CRUDL('user')),
   },
 });
 
-store.dispatch('post/read', { id: 1 });
-store.dispatch('user/create', { name: 'JohnDoe', age: 21 });
+store.dispatch('blogPost/read', { id: 1 });
+// store.state.blogPost.read.item
+//   -> { id: 1, title: 'hello, world!' }
+
+store.dispatch('user/create', { name: 'John Doe', age: 21 });
+// store.state.user.create.item
+//   -> { id: 1, name: 'John Doe', age: 21 }
+
+store.dispatch('user/create', { name: 'Johnny Foo', age: 16 });
+// store.state.user.create.failure
+//   -> { age: 'you must be 18 years old' }
 ```
 
 ### @crudl/redux-adapter
@@ -638,18 +647,27 @@ import { createSlice, configureStore } from '@reduxjs/toolkit';
 
 CRUDL.client = axios.create({ baseURL: 'https://api.url' });
 
-const post = adapter(new CRUDL('post'));
+const blogPost = adapter(new CRUDL('blogPost'));
 const user = adapter(new CRUDL('user'));
 
 const store = configureStore({
   reducer: {
-    post: createSlice(post.slice).reducer,
+    blogPost: createSlice(blogPost.slice).reducer,
     user: createSlice(user.slice).reducer,
   },
 });
 
-store.dispatch(post.actions.read({ id: 1 }));
-store.dispatch(user.actions.read({ name: 'JohnDoe', age: 21 }));
+store.dispatch(blogPost.actions.read({ id: 1 }));
+// store.getState().blogPost.read.item
+//   -> { id: 1, title: 'hello, world!' }
+
+store.dispatch(user.actions.create({ name: 'John Doe', age: 21 }));
+// store.getState().user.create.item
+//   -> { id: 1, name: 'John Doe', age: 21 }
+
+store.dispatch(user.actions.create({ name: 'Johnny Foo', age: 16 }));
+// store.getState().user.create.failure
+//   -> { age: 'you must be 18 years old' }
 ```
 
 ## License
