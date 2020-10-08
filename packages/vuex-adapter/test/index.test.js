@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-import CRUDL from '@crudl/core';
+import CRUDL from 'crudl';
 import CRUDLVuexAdapter from '@/index';
 
 Vue.use(Vuex);

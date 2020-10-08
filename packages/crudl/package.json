@@ -1,5 +1,5 @@
 {
-  "name": "@crudl/core",
+  "name": "crudl",
   "version": "0.0.3",
   "description": "Abstracts and handles common JSON RESTful APIs requests and responses",
   "homepage": "https://github.com/meucredere/crudl",

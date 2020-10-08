@@ -1,6 +1,6 @@
 import { createSlice, configureStore } from '@reduxjs/toolkit';
 
-import CRUDL from '@crudl/core';
+import CRUDL from 'crudl';
 import CRUDLReduxAdapter from '@/index';
 
 describe('@crudl/redux-adapter', () => {

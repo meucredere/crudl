@@ -3,8 +3,8 @@ Abstracts and handles common JSON RESTful APIs requests and responses
 
 [![npm version][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@crudl/core.svg
-[npm-url]: https://npmjs.org/package/@crudl/core
+[npm-image]: https://img.shields.io/npm/v/crudl.svg
+[npm-url]: https://npmjs.org/package/crudl
 
 ## What is it?
 
@@ -19,7 +19,7 @@ crudl provides an extendable and highly customizable set of operation handlers f
 It handles things like initial state schema, requests (actions in both Vuex and Redux), modifiers (mutations in Vuex, reducers in Redux), key pluralization and snake_casing on request responses, error normalization, among other useful things so you can have entire working RESTful modules with just a few lines of JavaScript:
 
 ```js
-import CRUDL from '@crudl/core';
+import CRUDL from 'crudl';
 import adapter from '@crudl/vuex-adapter';
 // import adapter from '@crudl/redux-adapter';
 
@@ -33,7 +33,7 @@ crudl is not only lightweight (`~3kb` core, `<1kb` adapters, gziped), but it als
 ## Installation
 
 ```bash
-npm install @crudl/core
+npm install crudl
 npm install @crudl/vuex-adapter
 # or npm install @crudl/redux-adapter
 ```
@@ -649,7 +649,7 @@ Snippets using real framework stores
 ### @crudl/vuex-adapter
 
 ```js
-import CRUDL from '@crudl/core';
+import CRUDL from 'crudl';
 import adapter from '@crudl/vuex-adapter';
 
 import Vue from 'vue';
@@ -684,7 +684,7 @@ store.dispatch('user/create', { name: 'Johnny Foo', age: 16 });
 ### @crudl/redux-adapter
 
 ```js
-import CRUDL from '@crudl/core';
+import CRUDL from 'crudl';
 import adapter from '@crudl/redux-adapter';
 
 import { createSlice, configureStore } from '@reduxjs/toolkit';

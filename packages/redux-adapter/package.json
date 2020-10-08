@@ -22,7 +22,7 @@
     "test:watch": "jest --watchAll"
   },
   "devDependencies": {
-    "@crudl/core": "^0.0.3",
+    "crudl": "^0.0.3",
     "@reduxjs/toolkit": "^1.4.0",
     "redux": "^4.0.5"
   },

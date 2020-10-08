@@ -22,7 +22,7 @@
     "test:watch": "jest --watchAll"
   },
   "devDependencies": {
-    "@crudl/core": "^0.0.3",
+    "crudl": "^0.0.3",
     "vue": "^2.6.12",
     "vuex": "^3.5.1"
   },
